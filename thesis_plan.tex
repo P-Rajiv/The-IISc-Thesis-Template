@@ -1,0 +1,83 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+
+\title{Thesis Plan}
+\author{Rajiv P}
+
+\begin{document}
+    \maketitle
+
+    \tableofcontents
+
+    \section{State of DeepLearning in CXR domain}
+    \subsection{Where deep learning models perform well or struggle}
+
+    \section{Synthetic Chest X-Ray Images}
+    \subsection{Where generated images could be useful}
+    \begin{itemize}
+        \item Augmenting for improving model performance of feature extraction models
+            in case of unsupervised learning
+
+        \item Augmentation in case of classification models.
+
+        \item Cross-Modality image generation
+
+        \item For generated image quality: FID
+    \end{itemize}
+
+    \section{VAEs - 1 week}
+    \subsection{Generation using VAE's and their limitations}
+    \begin{itemize}
+        \item Latent space visualization of VAE trained on all pathologies
+
+        \item Latent space visualization of VAE trained on top two pathologies
+
+        \item Validate with FID, LPIPS
+
+        \item Limited to reconstruction of images
+    \end{itemize}
+
+    \section{GANs - 2 weeks}
+    \begin{itemize}
+        \item Trained below models are already trained, generated images should
+            be compared with baselines
+    \end{itemize}
+    \subsection{DCGAN, Progressive GAN}
+    \begin{itemize}
+        \item Issues with training stability.
+
+        \item Problem of artefacts in generated images
+    \end{itemize}
+    \subsection{StyleGAN}
+    \begin{itemize}
+        \item Good generation Quality
+
+        \item Validate with FID, LPIPS
+    \end{itemize}
+    \subsection{Wavelet-DDGAN}
+    \begin{itemize}
+        \item State of art FID score
+
+        \item Problem of Conditional Generation
+    \end{itemize}
+
+    \section{Diffusion models - 2-3 weeks}
+    \subsection{Latent Diffusion Model}
+    \begin{itemize}
+        \item Benefits Conditional Generation
+
+        \item
+    \end{itemize}
+
+    \subsection{Variants of Latent Diffusion Model, SD1, SDXL}
+
+    \section{Pruned Generative models - 2 week}
+    \subsection{Pruning of GANs and Latent Diffusion Model}
+    \begin{itemize}
+        \item LD-Prune
+    \end{itemize}
+
+    \section{Utility of Whatsapp compressed Images}
+
+    \section{References}
+\end{document}

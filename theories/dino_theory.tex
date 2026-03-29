@@ -1,0 +1,98 @@
+\section{Self-Supervised Representation Learning with DINO}
+\label{sec:dino_theory}
+
+DINO (Self-DIstillation with NO labels) is a self-supervised learning framework that learns semantic visual representations without requiring manual annotations. It is based on knowledge distillation between two networks (student and teacher) operating on different augmented views of the same image.
+
+\subsection{Student–Teacher Framework}
+
+Let $\mathbf{x}$ denote an input image. We generate multiple augmented views:
+
+\begin{equation}
+\mathbf{x}_1 = t_1(\mathbf{x}), \quad
+\mathbf{x}_2 = t_2(\mathbf{x})
+\end{equation}
+
+where $t_1, t_2$ are stochastic augmentation functions (cropping, color jitter, etc.).
+
+Two networks are used:
+
+\begin{itemize}
+    \item Student network $f_{\theta_s}$
+    \item Teacher network $f_{\theta_t}$
+\end{itemize}
+
+Both produce feature representations:
+
+\begin{equation}
+\mathbf{z}_s = f_{\theta_s}(\mathbf{x}_1), \quad
+\mathbf{z}_t = f_{\theta_t}(\mathbf{x}_2)
+\end{equation}
+
+These representations are passed through projection heads $g_s, g_t$ to obtain logits:
+
+\begin{equation}
+\mathbf{p}_s = g_s(\mathbf{z}_s), \quad
+\mathbf{p}_t = g_t(\mathbf{z}_t)
+\end{equation}
+
+\subsection{Softmax with Temperature Scaling}
+
+The outputs are converted into probability distributions:
+
+\begin{align}
+P_s(i) &= \frac{\exp(p_s^i / \tau_s)}
+{\sum_j \exp(p_s^j / \tau_s)} \\
+P_t(i) &= \frac{\exp((p_t^i - c_i) / \tau_t)}
+{\sum_j \exp((p_t^j - c_j) / \tau_t)}
+\end{align}
+
+where:
+\begin{itemize}
+    \item $\tau_s, \tau_t$ are temperature parameters,
+    \item $c$ is a centering vector to stabilize training.
+\end{itemize}
+
+\subsection{Cross-Entropy Self-Distillation Loss}
+
+The student is trained to match the teacher distribution:
+
+\begin{equation}
+\mathcal{L}_{\text{DINO}} =
+- \sum_i P_t(i) \log P_s(i)
+\end{equation}
+
+Unlike contrastive methods, DINO does not use negative samples. The loss encourages invariance across augmented views.
+
+\subsection{Teacher Momentum Update}
+
+The teacher parameters are updated using exponential moving average (EMA):
+
+\begin{equation}
+\theta_t \leftarrow m \theta_t + (1 - m)\theta_s
+\end{equation}
+
+where $m \in [0,1]$ is a momentum coefficient close to 1.
+
+\subsection{Avoiding Collapse}
+
+DINO avoids trivial constant solutions via:
+
+\begin{enumerate}
+    \item Temperature sharpening of teacher outputs
+    \item Centering of teacher logits
+    \item EMA update of teacher network
+\end{enumerate}
+
+These mechanisms ensure that learned features capture meaningful semantic structure.
+
+\subsection{Emergent Semantic Structure}
+
+Empirically, DINO representations exhibit:
+
+\begin{itemize}
+    \item Strong clustering properties
+    \item Attention maps aligned with object boundaries
+    \item Linear separability for downstream tasks
+\end{itemize}
+
+This makes DINO particularly suitable for medical image representation learning where labels may be noisy or scarce.

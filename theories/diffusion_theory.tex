@@ -1,0 +1,222 @@
+\section{Diffusion Probabilistic Models}
+\label{sec:diffusion_theory}
+
+Diffusion models are likelihood-based generative models that learn to synthesize data by reversing a gradual noising process. Unlike GANs, diffusion models optimize a tractable variational objective and provide stable training with high sample quality.
+
+\subsection{Forward Diffusion Process}
+
+Let $\mathbf{x}_0 \sim p_{\text{data}}(\mathbf{x})$ denote a real image.
+
+The forward process gradually adds Gaussian noise over $T$ timesteps:
+
+\begin{equation}
+q(\mathbf{x}_t \mid \mathbf{x}_{t-1}) =
+\mathcal{N}\left(
+\sqrt{1 - \beta_t}\mathbf{x}_{t-1},
+\beta_t I
+\right)
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $\beta_t \in (0,1)$ is a predefined variance schedule,
+    \item $t = 1, \dots, T$.
+\end{itemize}
+
+Define:
+
+\begin{equation}
+\alpha_t = 1 - \beta_t,
+\quad
+\bar{\alpha}_t = \prod_{s=1}^{t} \alpha_s
+\end{equation}
+
+Then, sampling directly from timestep $t$ can be written in closed form:
+
+\begin{equation}
+q(\mathbf{x}_t \mid \mathbf{x}_0) =
+\mathcal{N}\left(
+\sqrt{\bar{\alpha}_t}\mathbf{x}_0,
+(1 - \bar{\alpha}_t) I
+\right)
+\end{equation}
+
+Equivalently:
+
+\begin{equation}
+\mathbf{x}_t =
+\sqrt{\bar{\alpha}_t}\mathbf{x}_0 +
+\sqrt{1 - \bar{\alpha}_t}\boldsymbol{\epsilon},
+\quad
+\boldsymbol{\epsilon} \sim \mathcal{N}(0,I)
+\end{equation}
+
+As $t \to T$, $\mathbf{x}_T$ approaches pure Gaussian noise.
+
+\subsection{Reverse Denoising Process}
+
+The goal is to learn a reverse process:
+
+\begin{equation}
+p_\theta(\mathbf{x}_{t-1} \mid \mathbf{x}_t)
+\end{equation}
+
+parameterized as:
+
+\begin{equation}
+p_\theta(\mathbf{x}_{t-1} \mid \mathbf{x}_t)
+=
+\mathcal{N}\left(
+\boldsymbol{\mu}_\theta(\mathbf{x}_t, t),
+\Sigma_\theta(\mathbf{x}_t, t)
+\right)
+\end{equation}
+
+This is modeled using a neural network (typically a U-Net).
+
+\subsection{Variational Objective}
+
+Training maximizes a variational lower bound on log-likelihood:
+
+\begin{equation}
+\log p_\theta(\mathbf{x}_0)
+\ge
+\mathcal{L}_{\text{VLB}}
+\end{equation}
+
+The simplified training objective reduces to noise prediction:
+
+\begin{equation}
+\mathcal{L}_{\text{simple}} =
+\mathbb{E}_{\mathbf{x}_0, \boldsymbol{\epsilon}, t}
+\left[
+\left\|
+\boldsymbol{\epsilon}
+-
+\boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)
+\right\|_2^2
+\right]
+\end{equation}
+
+Thus, the model learns to predict the added noise at each timestep.
+
+\subsection{Score Matching Interpretation}
+
+Diffusion models can be interpreted as learning the score function:
+
+\begin{equation}
+\nabla_{\mathbf{x}_t}
+\log q(\mathbf{x}_t)
+\end{equation}
+
+Using denoising score matching:
+
+\begin{equation}
+\mathcal{L}_{\text{DSM}} =
+\mathbb{E}
+\left[
+\left\|
+s_\theta(\mathbf{x}_t, t)
+-
+\nabla_{\mathbf{x}_t}
+\log q(\mathbf{x}_t \mid \mathbf{x}_0)
+\right\|_2^2
+\right]
+\end{equation}
+
+This connects diffusion models to stochastic differential equations.
+
+\subsection{Sampling Procedure}
+
+Generation starts from Gaussian noise:
+
+\begin{equation}
+\mathbf{x}_T \sim \mathcal{N}(0, I)
+\end{equation}
+
+Then iteratively sample:
+
+\begin{equation}
+\mathbf{x}_{t-1}
+=
+\frac{1}{\sqrt{\alpha_t}}
+\left(
+\mathbf{x}_t
+-
+\frac{\beta_t}{\sqrt{1 - \bar{\alpha}_t}}
+\boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)
+\right)
++
+\sigma_t \mathbf{z}
+\end{equation}
+
+where $\mathbf{z} \sim \mathcal{N}(0,I)$ if $t > 1$.
+
+\subsection{Classifier Guidance}
+
+To condition generation on label $y$, guidance modifies the score:
+
+\begin{equation}
+\nabla_{\mathbf{x}_t}
+\log p(\mathbf{x}_t \mid y)
+=
+\nabla_{\mathbf{x}_t}
+\log p(\mathbf{x}_t)
++
+\nabla_{\mathbf{x}_t}
+\log p(y \mid \mathbf{x}_t)
+\end{equation}
+
+Classifier-free guidance approximates this without an external classifier.
+
+\subsection{DDIM: Deterministic Sampling}
+
+DDIM modifies sampling to:
+
+\begin{equation}
+\mathbf{x}_{t-1}
+=
+\sqrt{\bar{\alpha}_{t-1}}
+\hat{\mathbf{x}}_0
++
+\sqrt{1 - \bar{\alpha}_{t-1}}
+\boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)
+\end{equation}
+
+allowing faster deterministic sampling.
+
+\subsection{Advantages Over GANs and VAEs}
+
+Diffusion models provide:
+
+\begin{itemize}
+    \item Stable training (no adversarial minimax instability)
+    \item Full mode coverage (no mode collapse)
+    \item Explicit likelihood optimization
+    \item High-fidelity image synthesis
+\end{itemize}
+
+Compared to VAEs:
+\begin{itemize}
+    \item Avoid blurry reconstructions
+    \item Do not require strong latent Gaussian compression
+\end{itemize}
+
+Compared to GANs:
+\begin{itemize}
+    \item Better diversity
+    \item More stable convergence
+    \item Improved anatomical consistency
+\end{itemize}
+
+\subsection{Relevance to Medical Image Generation}
+
+For chest X-ray generation:
+
+\begin{itemize}
+    \item Diffusion models preserve fine-grained anatomical structures.
+    \item Enable controlled pathology synthesis.
+    \item Provide better diversity for rare disease modeling.
+\end{itemize}
+
+This explains their recent dominance in medical image synthesis compared to VAEs and GANs.s

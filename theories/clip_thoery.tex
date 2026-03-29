@@ -1,0 +1,98 @@
+\section{Vision–Language Contrastive Learning (CLIP)}
+\label{sec:clip_theory}
+
+Contrastive Language–Image Pretraining (CLIP) learns aligned representations between images and text using large-scale image–caption pairs.
+
+\subsection{Dual Encoder Architecture}
+
+Given an image $\mathbf{x}$ and a text description $\mathbf{t}$:
+
+\begin{align}
+\mathbf{v} &= f_\theta(\mathbf{x}) \in \mathbb{R}^d \\
+\mathbf{u} &= g_\phi(\mathbf{t}) \in \mathbb{R}^d
+\end{align}
+
+where:
+\begin{itemize}
+    \item $f_\theta$ is an image encoder (e.g., ViT or CNN),
+    \item $g_\phi$ is a text encoder (e.g., Transformer),
+    \item Both outputs are normalized:
+\end{itemize}
+
+\begin{equation}
+\hat{\mathbf{v}} = \frac{\mathbf{v}}{\|\mathbf{v}\|}, \quad
+\hat{\mathbf{u}} = \frac{\mathbf{u}}{\|\mathbf{u}\|}
+\end{equation}
+
+\subsection{Similarity Function}
+
+The similarity between image $i$ and text $j$ is computed via cosine similarity:
+
+\begin{equation}
+s_{ij} = \hat{\mathbf{v}}_i^\top \hat{\mathbf{u}}_j
+\end{equation}
+
+\subsection{InfoNCE Contrastive Loss}
+
+For a batch of $N$ aligned image–text pairs, CLIP optimizes a symmetric contrastive objective:
+
+\begin{align}
+\mathcal{L}_{\text{image}} &=
+- \frac{1}{N} \sum_{i=1}^N
+\log
+\frac{\exp(s_{ii}/\tau)}
+{\sum_{j=1}^N \exp(s_{ij}/\tau)}
+\\
+\mathcal{L}_{\text{text}} &=
+- \frac{1}{N} \sum_{i=1}^N
+\log
+\frac{\exp(s_{ii}/\tau)}
+{\sum_{j=1}^N \exp(s_{ji}/\tau)}
+\end{align}
+
+Total loss:
+
+\begin{equation}
+\mathcal{L}_{\text{CLIP}} =
+\frac{1}{2}
+\left(
+\mathcal{L}_{\text{image}} +
+\mathcal{L}_{\text{text}}
+\right)
+\end{equation}
+
+where $\tau$ is a learnable temperature parameter.
+
+\subsection{Contrastive Alignment Interpretation}
+
+The objective:
+
+\begin{itemize}
+    \item Pulls matched image–text pairs closer
+    \item Pushes mismatched pairs apart
+    \item Structures embedding space semantically
+\end{itemize}
+
+\subsection{Zero-Shot Classification}
+
+Given class descriptions $\{\mathbf{t}_k\}$, prediction is performed by:
+
+\begin{equation}
+\hat{y} =
+\arg\max_k
+\; \hat{\mathbf{v}}^\top \hat{\mathbf{u}}_k
+\end{equation}
+
+This enables zero-shot classification without fine-tuning.
+
+\subsection{Relevance to Medical Imaging}
+
+In medical imaging:
+
+\begin{itemize}
+    \item CLIP-like models align radiographs with report text
+    \item Enable zero-shot pathology classification
+    \item Provide semantically structured latent spaces
+\end{itemize}
+
+Compared to VAEs, contrastive vision–language models produce embeddings that exhibit stronger pathology-based clustering due to supervision from textual semantics.
