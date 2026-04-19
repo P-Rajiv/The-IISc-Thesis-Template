@@ -1,143 +1,44 @@
-\section{Background}
+\label{sec:vae_framework}
 
-Variational Autoencoders (VAEs) are deep latent variable generative models that learn a probabilistic mapping between observed data $\mathbf{x} \in \mathbb{R}^{H \times W \times C}$ and latent variables $\mathbf{z} \in \mathbb{R}^d$. Unlike deterministic autoencoders, VAEs impose a structured prior on the latent space, enabling sampling and generation of new images.
+Variational Autoencoders (VAE) learns model a complex data distribution $p(\mathbf{x})$ by assuming it is governed by unobserved, low-dimensional latent variables $\mathbf{z}$. 
 
-\subsection{Latent Variable Model}
+\subsection{The Probabilistic Generative Process}
+Once we have a trained (learned) VAE model images $\mathbf{x}$ can be generated from a latent representation $\mathbf{z}$ drawn from a prior distribution. Which is defined as :
+\begin{equation} 
+p_\theta(\mathbf{x}, \mathbf{z}) = p_\theta(\mathbf{x} \mid \mathbf{z}) p(\mathbf{z}) 
+\end{equation} 
+where $p(\mathbf{z}) \sim \mathcal{N}(0, I)$ acts as our starting point—i.e we sample from a gaussian (Normal) distribution. The decoder $p_\theta(\mathbf{x} \mid \mathbf{z})$ then decodes these samples into the high-dimensional image space.
 
-We assume the following generative process:
+\subsection{Variational Approximation}
+In practice, identifying which latent code $\mathbf{z}$ produced a specific image $\mathbf{x}$ is computationally impossible because the true posterior $p_\theta(\mathbf{z} \mid \mathbf{x})$ is intractable. To resolve this, we introduce a secondary network—the encoder—to approximate this relationship:
+\begin{equation} 
+q_\phi(\mathbf{z} \mid \mathbf{x}) \approx p_\theta(\mathbf{z} \mid \mathbf{x}) 
+\end{equation}
+This allows us to treat the generation problem as a task of optimization rather than direct integration.
 
-\begin{equation}
-p_\theta(\mathbf{x}, \mathbf{z}) = p_\theta(\mathbf{x} \mid \mathbf{z}) p(\mathbf{z})
+\subsection{Evidence Lower Bound : ELBO}
+To train both the encoder and decoder simultaneously, we derive the Evidence Lower Bound (ELBO). This objective ensures that the model remains faithful to the original data while respecting the geometry of our latent space:
+\begin{equation} 
+\mathcal{L}(\theta, \phi; \mathbf{x}) = \underbrace{\mathbb{E}_{q_\phi(\mathbf{z} \mid \mathbf{x})} [\log p_\theta(\mathbf{x} \mid \mathbf{z})]}_{\text{Reconstruction Fidelity}} - \underbrace{D_{KL}(q_\phi(\mathbf{z} \mid \mathbf{x}) \| p(\mathbf{z}))}_{\text{Latent Regularization}} 
 \end{equation}
 
-where:
 
-\begin{itemize}
-    \item $p(\mathbf{z})$ is a prior over latent variables (typically $\mathcal{N}(0, I)$),
-    \item $p_\theta(\mathbf{x} \mid \mathbf{z})$ is the likelihood modeled by a neural network decoder,
-    \item $\theta$ denotes decoder parameters.
-\end{itemize}
 
-The marginal likelihood of the data is:
+% \subsection{Limitations of VAEs}
 
-\begin{equation}
-p_\theta(\mathbf{x}) = \int p_\theta(\mathbf{x} \mid \mathbf{z}) p(\mathbf{z}) d\mathbf{z}
-\end{equation}
+% While VAEs enable generative modeling, they exhibit several limitations:
 
-However, this integral is intractable for deep neural network decoders.
+% \begin{enumerate}
+%     \item \textbf{Over-Regularized Latent Space:}  
+%     The KL term forces latent encodings toward a unimodal Gaussian prior, which may suppress meaningful clustering structure in complex datasets such as chest X-rays.
 
-\subsection{Variational Inference}
+%     \item \textbf{Blurry Reconstructions:}  
+%     When using Gaussian likelihood assumptions, the decoder optimizes pixel-wise reconstruction loss, often leading to blurry outputs.
 
-To approximate the true posterior $p_\theta(\mathbf{z} \mid \mathbf{x})$, we introduce a variational distribution:
+%     \item \textbf{Posterior Collapse:}  
+%     The encoder may ignore the latent variable if the decoder is sufficiently powerful.
 
-\begin{equation}
-q_\phi(\mathbf{z} \mid \mathbf{x})
-\end{equation}
+%     \item \textbf{Poor Class Separability:}  
+%     In medical datasets with subtle pathology variations, enforcing a global Gaussian structure can mix pathological and non-pathological samples in latent space.
+% \end{enumerate}
 
-parameterized by an encoder network with parameters $\phi$.
-
-The objective is to maximize the log-likelihood:
-
-\begin{equation}
-\log p_\theta(\mathbf{x})
-\end{equation}
-
-Using variational inference, we derive the Evidence Lower Bound (ELBO):
-
-\begin{align}
-\log p_\theta(\mathbf{x})
-&= \mathcal{L}(\theta, \phi; \mathbf{x})
-+ D_{KL}\left(q_\phi(\mathbf{z} \mid \mathbf{x}) \| p_\theta(\mathbf{z} \mid \mathbf{x})\right)
-\end{align}
-
-Since the KL divergence is non-negative:
-
-\begin{equation}
-\log p_\theta(\mathbf{x}) \geq \mathcal{L}(\theta, \phi; \mathbf{x})
-\end{equation}
-
-The ELBO is:
-
-\begin{align}
-\mathcal{L}(\theta, \phi; \mathbf{x})
-&= \mathbb{E}_{q_\phi(\mathbf{z} \mid \mathbf{x})}
-    \left[ \log p_\theta(\mathbf{x} \mid \mathbf{z}) \right]
-- D_{KL}\left(q_\phi(\mathbf{z} \mid \mathbf{x}) \| p(\mathbf{z})\right)
-\end{align}
-
-\subsection{Interpretation of the Objective}
-
-The ELBO consists of two competing terms:
-
-\begin{enumerate}
-    \item \textbf{Reconstruction Term}
-    \begin{equation}
-    \mathbb{E}_{q_\phi(\mathbf{z} \mid \mathbf{x})}
-    \left[ \log p_\theta(\mathbf{x} \mid \mathbf{z}) \right]
-    \end{equation}
-    Encourages accurate reconstruction of input images.
-    
-    \item \textbf{KL Regularization Term}
-    \begin{equation}
-    D_{KL}\left(q_\phi(\mathbf{z} \mid \mathbf{x}) \| p(\mathbf{z})\right)
-    \end{equation}
-    Forces the approximate posterior to stay close to the prior $\mathcal{N}(0, I)$.
-\end{enumerate}
-
-This regularization enforces global smoothness and continuity in latent space but can restrict the representational capacity of the model.
-
-\subsection{Gaussian Posterior Assumption}
-
-Typically, the encoder outputs:
-
-\begin{equation}
-q_\phi(\mathbf{z} \mid \mathbf{x}) =
-\mathcal{N}\left(\boldsymbol{\mu}_\phi(\mathbf{x}),
-\mathrm{diag}(\boldsymbol{\sigma}_\phi^2(\mathbf{x}))\right)
-\end{equation}
-
-The KL divergence with standard normal prior has closed-form:
-
-\begin{align}
-D_{KL} &= \frac{1}{2}
-\sum_{i=1}^{d}
-\left(
-\mu_i^2 + \sigma_i^2 - \log \sigma_i^2 - 1
-\right)
-\end{align}
-
-\subsection{Reparameterization Trick}
-
-To allow backpropagation through sampling, we reparameterize:
-
-\begin{equation}
-\mathbf{z} =
-\boldsymbol{\mu}_\phi(\mathbf{x}) +
-\boldsymbol{\sigma}_\phi(\mathbf{x}) \odot \boldsymbol{\epsilon},
-\quad
-\boldsymbol{\epsilon} \sim \mathcal{N}(0, I)
-\end{equation}
-
-This enables gradient-based optimization of the ELBO.
-
-\subsection{Limitations of VAEs}
-
-While VAEs enable generative modeling, they exhibit several limitations:
-
-\begin{enumerate}
-    \item \textbf{Over-Regularized Latent Space:}  
-    The KL term forces latent encodings toward a unimodal Gaussian prior, which may suppress meaningful clustering structure in complex datasets such as chest X-rays.
-
-    \item \textbf{Blurry Reconstructions:}  
-    When using Gaussian likelihood assumptions, the decoder optimizes pixel-wise reconstruction loss, often leading to blurry outputs.
-
-    \item \textbf{Posterior Collapse:}  
-    The encoder may ignore the latent variable if the decoder is sufficiently powerful.
-
-    \item \textbf{Poor Class Separability:}  
-    In medical datasets with subtle pathology variations, enforcing a global Gaussian structure can mix pathological and non-pathological samples in latent space.
-\end{enumerate}
-
-Unlike datasets such as MNIST where digit classes form well-separated manifolds, chest X-ray pathologies exhibit subtle intensity variations and overlapping anatomical structures, making it difficult for a standard VAE to produce clearly separated clusters in latent space.
-
-This explains the absence of strong pathology-based clustering observed in Figure~\ref{fig:latent_space_all}.

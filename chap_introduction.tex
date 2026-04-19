@@ -3,16 +3,25 @@
 
 \noindent
 \begin{minipage}[c]{0.55\textwidth}
-    Chest X-ray (CXR) images are fundamental diagnostic tools used to identify various
-    lung diseases. They provide a non-invasive means for clinicians to visualize
-    the internal structures of the chest, facilitating the detection of abnormalities
-    such as infections, tumors, or chronic respiratory conditions. This imaging
-    modality remains a cornerstone of clinical practice due to its accessibility
-    and effectiveness. 
+Chest X-ray (CXR) images are fundamental diagnostic tools used to identify various lung diseases. They provide a non-invasive means for clinicians to visualize the internal structures of the chest, facilitating the detection of abnormalities such as infections, tumors, or chronic respiratory conditions. This imaging modality remains a cornerstone of clinical practice due to its accessibility and effectiveness.
 \end{minipage}
 \hfill
 \begin{minipage}[c]{0.4\textwidth}
-    \centering
-    \includegraphics[width=\textwidth]{images/cxr_sample}
-    \captionof{figure}{A sample chest X-ray image.} \label{fig:cxr_sample}
+\centering
+\includegraphics[width=\textwidth]{images/cxr_sample}
+\captionof{figure}{A sample chest X-ray image.}
+\label{fig:cxr_sample}
 \end{minipage}
+
+\section{Existing CXR Image Datasets}
+% Add your text here regarding datasets like ChestX-ray14, MIMIC-CXR, or CheXpert.
+
+\section{Need for Synthetic CXR}
+% Add your text here about why data augmentation or privacy-preserving synthetic data is needed.
+
+\subsection{Metrics}
+Frechet Inception Distance (FID) is the standard metric used to evaluate the quality of generated images. 
+% As a baseline FID score between Normal (pathology free) and Abnormal (Pathology contained) x-ray images is 
+% measured to check how good are later FIDs compared to this baseline.
+
+% FID between Normal and Abnormal images is: 19.31

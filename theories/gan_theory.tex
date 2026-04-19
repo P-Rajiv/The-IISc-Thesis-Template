@@ -1,7 +1,13 @@
 \section{Generative Adversarial Networks (GANs)}
 \label{sec:gan_theory}
 
-Generative Adversarial Networks (GANs) are implicit generative models that learn to synthesize realistic samples by framing generation as a two-player minimax game between a generator and a discriminator. Unlike VAEs, GANs do not explicitly maximize likelihood but instead learn to approximate the data distribution through adversarial training.
+Generative Adversarial Networks (GANs) \cite{goodfellow2014generativeadversarialnetworks} are 
+implicit generative models, where a neural network called the generator learns to synthesize 
+realistic images by using feedback from a discriminator. The discriminator learns to distinguish 
+between real and generated images, effectively critiquing the generator’s outputs, while the 
+generator improves its samples based on this feedback to better fool the discriminator. Unlike 
+VAEs, GANs do not explicitly maximize likelihood but instead learn to approximate the data 
+distribution through adversarial training.
 
 \subsection{Adversarial Learning Framework}
 
@@ -40,29 +46,38 @@ GAN training is formulated as a minimax optimization problem:
 
 The discriminator aims to maximize this objective, while the generator aims to minimize it.
 
-\subsection{Optimal Discriminator}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{model_architectures/GAN-and-loss}
+    \caption{Schematic diagram of the standard GAN framework and associated loss functions. The generator $G$ learns to map random noise $\mathbf{z}$ to the data space, while the discriminator $D$ distinguishes between real and generated data. Adversarial training proceeds via the minimax objective described above.}
+    \label{fig:gan_architecture}
+\end{figure}
 
-For a fixed generator, the optimal discriminator is:
 
-\begin{equation}
-D^*(\mathbf{x}) =
-\frac{p_{\text{data}}(\mathbf{x})}
-{p_{\text{data}}(\mathbf{x}) + p_G(\mathbf{x})}
-\end{equation}
 
-where $p_G$ is the model distribution induced by $G_\theta$.
+% \subsection{Optimal Discriminator}
 
-Substituting $D^*$ into the value function yields:
+% For a fixed generator, the optimal discriminator is:
 
-\begin{equation}
-V(D^*, G) =
-- \log 4 +
-2 \cdot D_{JS}\left(
-p_{\text{data}} \,\|\, p_G
-\right)
-\end{equation}
+% \begin{equation}
+% D^*(\mathbf{x}) =
+% \frac{p_{\text{data}}(\mathbf{x})}
+% {p_{\text{data}}(\mathbf{x}) + p_G(\mathbf{x})}
+% \end{equation}
 
-Thus, minimizing the GAN objective corresponds to minimizing the Jensen–Shannon divergence between real and generated distributions.
+% where $p_G$ is the model distribution induced by $G_\theta$.
+
+% Substituting $D^*$ into the value function yields:
+
+% \begin{equation}
+% V(D^*, G) =
+% - \log 4 +
+% 2 \cdot D_{JS}\left(
+% p_{\text{data}} \,\|\, p_G
+% \right)
+% \end{equation}
+
+% Thus, minimizing the GAN objective corresponds to minimizing the Jensen–Shannon divergence between real and generated distributions.
 
 \subsection{Non-Saturating Generator Loss}
 
@@ -141,33 +156,33 @@ The objective becomes:
 
 Conditional GANs are particularly relevant in medical imaging for pathology-controlled image generation.
 
-\subsection{Comparison with Likelihood-Based Models}
+% \subsection{Comparison with Likelihood-Based Models}
 
-Unlike VAEs:
+Unlike VAEs, GANs do not require explicit likelihood modeling, no pixel-wise reconstruction term is used and generated images are typically sharper.
+However, GANs exhibit  training instability, mode collapse (limited diversity) and lacks explicit latent density estimation.
 
-\begin{itemize}
-    \item GANs do not require explicit likelihood modeling.
-    \item No pixel-wise reconstruction term is used.
-    \item Generated images are typically sharper.
-\end{itemize}
+% \subsection{Relevance to Medical Image Generation}
 
-However, GANs exhibit:
+% For chest X-ray generation:
 
-\begin{itemize}
-    \item Training instability
-    \item Mode collapse (limited diversity)
-    \item Lack of explicit latent density estimation
-\end{itemize}
+% \begin{itemize}
+%     \item GANs can produce high-fidelity synthetic radiographs.
+%     \item Conditional GANs allow pathology-specific generation.
+%     \item However, ensuring anatomical consistency and diversity remains challenging.
+% \end{itemize}
+\section{DC GAN Experiments}
+\subsection{Progressive GAN}
 
-\subsection{Relevance to Medical Image Generation}
+Images generated using Progressive GAN 
 
-For chest X-ray generation:
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.85\textwidth]{model_architectures/progressive-gan.png}
+    \caption{Progressive GAN architecture. Progressive growing enables synthesis of high-resolution images by starting at low resolution and incrementally adding layers to both generator and discriminator.}
+    \label{fig:pro-gan-architecture}
+\end{figure}
 
-\begin{itemize}
-    \item GANs can produce high-fidelity synthetic radiographs.
-    \item Conditional GANs allow pathology-specific generation.
-    \item However, ensuring anatomical consistency and diversity remains challenging.
-\end{itemize}
+
 
 \section{Style-Based Generative Adversarial Networks}
 \label{sec:stylegan_theory}
