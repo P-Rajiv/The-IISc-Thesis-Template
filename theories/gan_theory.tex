@@ -54,31 +54,6 @@ The discriminator aims to maximize this objective, while the generator aims to m
 \end{figure}
 
 
-
-% \subsection{Optimal Discriminator}
-
-% For a fixed generator, the optimal discriminator is:
-
-% \begin{equation}
-% D^*(\mathbf{x}) =
-% \frac{p_{\text{data}}(\mathbf{x})}
-% {p_{\text{data}}(\mathbf{x}) + p_G(\mathbf{x})}
-% \end{equation}
-
-% where $p_G$ is the model distribution induced by $G_\theta$.
-
-% Substituting $D^*$ into the value function yields:
-
-% \begin{equation}
-% V(D^*, G) =
-% - \log 4 +
-% 2 \cdot D_{JS}\left(
-% p_{\text{data}} \,\|\, p_G
-% \right)
-% \end{equation}
-
-% Thus, minimizing the GAN objective corresponds to minimizing the Jensen–Shannon divergence between real and generated distributions.
-
 \subsection{Non-Saturating Generator Loss}
 
 In practice, the generator is trained using the non-saturating loss for stronger gradients:
@@ -161,15 +136,6 @@ Conditional GANs are particularly relevant in medical imaging for pathology-cont
 Unlike VAEs, GANs do not require explicit likelihood modeling, no pixel-wise reconstruction term is used and generated images are typically sharper.
 However, GANs exhibit  training instability, mode collapse (limited diversity) and lacks explicit latent density estimation.
 
-% \subsection{Relevance to Medical Image Generation}
-
-% For chest X-ray generation:
-
-% \begin{itemize}
-%     \item GANs can produce high-fidelity synthetic radiographs.
-%     \item Conditional GANs allow pathology-specific generation.
-%     \item However, ensuring anatomical consistency and diversity remains challenging.
-% \end{itemize}
 \section{DC GAN Experiments}
 \subsection{Progressive GAN}
 
@@ -294,57 +260,6 @@ This regularization encourages consistent perceptual change per unit step in lat
 
 \bigskip
 
-\subsection{StyleGAN3}
-
-StyleGAN3 addresses aliasing artifacts and improves translation equivariance.
-
-\subsubsection{Aliasing Problem}
-
-Earlier StyleGAN versions produce features tied to absolute pixel coordinates. This results in:
-
-\begin{itemize}
-    \item Texture "sticking"
-    \item Inconsistent translation behavior
-\end{itemize}
-
-\subsubsection{Continuous Signal Interpretation}
-
-StyleGAN3 interprets feature maps as continuous signals sampled on a grid.
-
-Convolution is reformulated as:
-
-\begin{equation}
-\mathbf{h}(x) =
-\int
-\mathbf{k}(x - \tau)
-\mathbf{f}(\tau)
-d\tau
-\end{equation}
-
-followed by careful low-pass filtering before resampling.
-
-This ensures that transformations like translation correspond to phase shifts in continuous space rather than aliasing artifacts.
-
-\subsubsection{Improved Equivariance}
-
-StyleGAN3 enforces approximate equivariance:
-
-\begin{equation}
-G(T(\mathbf{z})) \approx T(G(\mathbf{z}))
-\end{equation}
-
-where $T$ denotes spatial transformations.
-
-This leads to:
-
-\begin{itemize}
-    \item Reduced texture sticking
-    \item Improved geometric consistency
-    \item Better motion consistency in video synthesis
-\end{itemize}
-
-\bigskip
-
 \subsection{Comparison Across Versions}
 
 \begin{center}
@@ -380,4 +295,4 @@ However, GAN-based models remain limited in:
     \item Ensuring full coverage of anatomical variability.
 \end{itemize}
 
-Compared to VAEs, GANs typically yield sharper images but may suffer from reduced coverage of rare pathologies due to mode collapse.
+Compared to VAEs, GANs typically yield sharper images but may suffer from reduced coverage of rare pathologies due to mode collapse. 
