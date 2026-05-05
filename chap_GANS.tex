@@ -139,9 +139,51 @@ Unlike VAEs, GANs do not require explicit likelihood modeling, no pixel-wise rec
 However, GANs exhibit  training instability, mode collapse (limited diversity) and lacks explicit latent density estimation.
 
 \section{DC GAN Experiments}
+
+
 \subsection{Progressive GAN}
 
-Images generated using Progressive GAN 
+
+\begin{figure}[h!]
+    \centering
+    
+    \begin{subfigure}{0.24\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/pro_gan/image_0.png}
+    \end{subfigure}
+    \begin{subfigure}{0.24\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/pro_gan/image_3.png}
+    \end{subfigure}
+    \begin{subfigure}{0.24\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/pro_gan/image_7.png}
+    \end{subfigure}
+    \begin{subfigure}{0.24\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/pro_gan/image_12.png}
+    \end{subfigure}
+
+    \caption{Images generated using Progressive GAN}
+    \label{fig:progan_images}
+\end{figure}
+
+\subsubsection{Evaluation results}
+FID of generated images is 80.701  
+
+We can clearly see that the images generated are meaningfully realistic, we can also see that that there are artifacts if we zoom in , this is reason why the FID of generated images is so high.
+
+\subsubsection{Training details:} 
+\begin{itemize}
+    \item Trained for 48 hours on 4 NVIDIA A100 GPUs (consuming approximately 10GB memory per GPU).
+    \item Batch size of 32 for 70,000 iterations.
+    \item Generated image size of $256 \times 256$.
+    \item Optimized using Adam optimizer with learning rate $1\times10^{-3}$ and $(\beta_1, \beta_2) = (0.0, 0.99)$.
+    \item Latent vector dimension set to 128.
+    \item Training followed progressive growing from $8 \times 8$ to $256 \times 256$ resolution with smooth fade-in transitions.
+    \item Wasserstein GAN with Gradient Penalty (WGAN-GP) loss was used with gradient penalty coefficient $\lambda = 10$.
+\end{itemize}
+
 
 
 \begin{figure}[ht]
@@ -156,56 +198,8 @@ Images generated using Progressive GAN
 \section{Style-Based Generative Adversarial Networks}
 \label{sec:stylegan_theory}
 
-StyleGAN introduces a style-based generator architecture that improves controllability, disentanglement, and image fidelity. Unlike classical GANs that feed the latent vector directly into the generator, StyleGAN modifies the internal normalization and feature modulation process.
+StyleGAN introduces a style-based generator architecture that improves controllability, disentanglement, and image fidelity. Unlike classical GANs that feed the latent vector directly into the generator, StyleGAN modifies the internal normalization and feature modulation process. In this work we verified StyleGAN2 given its superior performance on popular datasets like FFHQ.
 
-\subsection{StyleGAN (StyleGAN1)}
-
-\subsubsection{Mapping Network}
-
-Instead of directly using $\mathbf{z} \sim \mathcal{N}(0,I)$, StyleGAN first transforms it via a mapping network:
-
-\begin{equation}
-\mathbf{w} = f_{\text{map}}(\mathbf{z})
-\end{equation}
-
-where $f_{\text{map}}$ is typically an 8-layer MLP.
-
-This transforms the latent space $\mathcal{Z}$ into an intermediate latent space $\mathcal{W}$ that is empirically more disentangled.
-
-\subsubsection{Adaptive Instance Normalization (AdaIN)}
-
-Each convolutional layer receives style parameters derived from $\mathbf{w}$. Let $\mathbf{h}$ denote intermediate feature maps. AdaIN is defined as:
-
-\begin{equation}
-\text{AdaIN}(\mathbf{h}, \mathbf{w}) =
-\gamma(\mathbf{w})
-\frac{\mathbf{h} - \mu(\mathbf{h})}{\sigma(\mathbf{h})}
-+ \beta(\mathbf{w})
-\end{equation}
-
-where:
-\begin{itemize}
-    \item $\mu(\mathbf{h}), \sigma(\mathbf{h})$ are per-channel statistics,
-    \item $\gamma(\mathbf{w}), \beta(\mathbf{w})$ are learned affine transforms.
-\end{itemize}
-
-This allows different layers to control different visual attributes (coarse-to-fine structure).
-
-\subsubsection{Noise Injection}
-
-Spatially uncorrelated Gaussian noise is injected into each layer:
-
-\begin{equation}
-\mathbf{h}' = \mathbf{h} + \alpha \mathbf{n}
-\end{equation}
-
-where $\mathbf{n} \sim \mathcal{N}(0,1)$ and $\alpha$ is learned per channel. This models stochastic details such as texture.
-
-\subsubsection{Progressive Growing}
-
-StyleGAN1 inherits progressive growing from ProGAN, gradually increasing resolution during training to stabilize convergence.
-
-\bigskip
 
 \subsection{StyleGAN2}
 
@@ -263,32 +257,7 @@ This regularization encourages consistent perceptual change per unit step in lat
 
 \bigskip
 
-\subsection{Comparison Across Versions}
 
-\begin{center}
-\begin{tabular}{lccc}
-\hline
-Feature & StyleGAN1 & StyleGAN2 & StyleGAN3 \\
-\hline
-Mapping Network & \checkmark & \checkmark & \checkmark \\
-AdaIN & \checkmark & -- & -- \\
-Weight Demodulation & -- & \checkmark & \checkmark \\
-Progressive Growing & \checkmark & -- & -- \\
-Anti-Aliasing Design & -- & -- & \checkmark \\
-Equivariance Improvements & -- & Partial & \checkmark \\
-\hline
-\end{tabular}
-\end{center}
-
-\subsection{Relevance to Medical Image Generation}
-
-In medical imaging (e.g., chest X-rays):
-
-\begin{itemize}
-    \item StyleGAN1 provides controllable latent structure.
-    \item StyleGAN2 improves high-frequency anatomical realism.
-    \item StyleGAN3 enhances geometric consistency, reducing artificial texture artifacts.
-\end{itemize}
 
 However, GAN-based models remain limited in:
 
@@ -298,19 +267,12 @@ However, GAN-based models remain limited in:
     \item Ensuring full coverage of anatomical variability.
 \end{itemize}
 
-Compared to VAEs, GANs typically yield sharper images but may suffer from reduced coverage of rare pathologies due to mode collapse. 
 
 
 
-
-
-\subsection{Problem of artefacts in generated images}
-
-\section{StyleGAN}
-\subsection{Good generation Quality}
-
-\subsection{Validate with FID, LPIPS}
 
 \section{Wavelet-DDGAN}
 
 \section{Problem of Conditional Generation}
+
+We can clearly see that compared to VAEs, GANs typically yield sharper images but major problem is that we need pathology conditional images for our downstream tasks, so our GANs should produce images for specified diseases, but conditional generation becomes very hard in GANs. One major reason is mode collapse. 
