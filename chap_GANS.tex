@@ -273,6 +273,48 @@ However, GAN-based models remain limited in:
 
 \section{Wavelet-DDGAN}
 
+Wavelet Denoising Diffusion GAN successfully generated images of resolution 512 $\times$ 512 with FID of 11.4 after 100 epochs on NIH dataset, but still the procedure is unconditional. 
+
+\begin{figure}[h!]
+    \centering
+    
+    \begin{subfigure}{0.24\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/wddgan_images/cxr_512_epoch_100_WDDGAN/0_epoch_100.png}
+    \end{subfigure}
+    \begin{subfigure}{0.24\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/wddgan_images/cxr_512_epoch_100_WDDGAN/10_1725785601.4691365.png}
+    \end{subfigure}
+    \begin{subfigure}{0.24\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/wddgan_images/cxr_512_epoch_100_WDDGAN/21_1725785604.2285786.png}
+    \end{subfigure}
+    \begin{subfigure}{0.24\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/wddgan_images/cxr_512_epoch_100_WDDGAN/13_1725785602.20652.png}
+    \end{subfigure}
+
+    \caption{Images generated using Wavelet Denoising Diffusion GAN}
+    \label{fig:progan_images}
+    
+    \vspace{0.5em}
+
+    % Second row: architecture
+    \begin{subfigure}{0.8\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/DDGAN_arch.png}
+    \end{subfigure}
+
+    \caption{Wavelet-DDGAN generated samples (top) and model architecture (bottom).}
+    \label{fig:wddgan_all}
+\end{figure}
+
+We only trained the model for 4 denoising steps, as mentioned in the paper \cite{phung2023wavelet}, which makes the inference way faster comapred to diffusion models which even after using better samplers need 40 to 50 steps to 
+generate images. 
+
+One of the best tradeoffs of WDDGAN is Faster generation it generates 10 images per second, while maintaining good generation quality. 
+
 \section{Problem of Conditional Generation}
 
 We can clearly see that compared to VAEs, GANs typically yield sharper images but major problem is that we need pathology conditional images for our downstream tasks, so our GANs should produce images for specified diseases, but conditional generation becomes very hard in GANs. One major reason is mode collapse. 

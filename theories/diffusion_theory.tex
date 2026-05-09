@@ -284,22 +284,22 @@ Then iteratively sample:
 
 where $\mathbf{z} \sim \mathcal{N}(0,I)$ if $t > 1$.
 
-\subsection{Classifier Guidance}
+% \subsection{Classifier Guidance}
 
-To condition generation on label $y$, guidance modifies the score:
+% To condition generation on label $y$, guidance modifies the score:
 
-\begin{equation}
-\nabla_{\mathbf{x}_t}
-\log p(\mathbf{x}_t \mid y)
-=
-\nabla_{\mathbf{x}_t}
-\log p(\mathbf{x}_t)
-+
-\nabla_{\mathbf{x}_t}
-\log p(y \mid \mathbf{x}_t)
-\end{equation}
+% \begin{equation}
+% \nabla_{\mathbf{x}_t}
+% \log p(\mathbf{x}_t \mid y)
+% =
+% \nabla_{\mathbf{x}_t}
+% \log p(\mathbf{x}_t)
+% +
+% \nabla_{\mathbf{x}_t}
+% \log p(y \mid \mathbf{x}_t)
+% \end{equation}
 
-Classifier-free guidance approximates this without an external classifier.
+% Classifier-free guidance approximates this without an external classifier.
 
 \subsection{DDIM: Deterministic Sampling}
 
